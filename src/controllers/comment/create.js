@@ -4,9 +4,6 @@ const mailgun = require('mailgun-js')
 const DOMAIN = process.env.MAILGUN_DOMAIN
 const mg = mailgun({ apiKey: process.env.MAILGUN_KEY, domain: DOMAIN })
 const mailcomposer = require('mailcomposer')
-const top = 'https://mimosa-backendapp.herokuapp.com/top.png'
-const bottom = 'https://mimosa-backendapp.herokuapp.com/bottom.png'
-const logo = 'https://mimosa-backendapp.herokuapp.com/logo.png'
 
 const validate = async (req, res, next) => {
   try {
