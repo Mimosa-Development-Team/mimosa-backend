@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Running command in container for nix operating systems only
+source .env
+docker exec -it ${COMPOSE_NODE_CONTAINER} $@

@@ -1,0 +1,60 @@
+version: '3.9'
+
+networks:
+  # Name this by project
+  mimosa:
+
+services:
+  # Docker service name
+  mimosaapp:
+    build: .
+    container_name: mimosaapp # Docker container name
+    volumes:
+      # Syncs file from local to docker image folder
+      # Usage: <localpath>:<dockerimagepath>
+      - .:/app
+    ports:
+      # Binds port from local machine port to docker image port
+      # Usage: <localport>:<dockerimageport>
+      - ${COMPOSE_NODE_PORT}:${PORT}
+    tty: true # Interactive shell shown on execute
+    networks:
+      # base on the name you specified from networks
+      - mimosa
+
+  # Postgres database for local environment
+  postgres:
+    container_name: postgres
+    image: postgres:latest
+    environment:
+      # Values are all base from .env file
+      # Under the "Local Dev DB" Section
+      POSTGRES_DB: "${DB_NAME}"
+      POSTGRES_USER: "${DB_USER}"
+      POSTGRES_PASSWORD: "${DB_PASS}"
+    volumes:
+      # Binds dev_files/data folder to /var/lib/postgresql/data
+      # This is to ensure the data are all available even if
+      # The docker container is being restarted
+      - ./dev_files/data:/var/lib/postgresql/data
+    ports:
+      - "${DB_PORT}:5432"
+    restart: unless-stopped
+    networks:
+      - mimosa
+
+  # Postgres test database for local environment
+  postgrestest:
+    container_name: postgrestest
+    image: postgres:latest
+    environment:
+      # Values are all base from .env file
+      # Under the "Local Dev Test DB" Section
+      POSTGRES_DB: "${DB_NAME_TEST}"
+      POSTGRES_USER: "${DB_USER_TEST}"
+      POSTGRES_PASSWORD: "${DB_PASS_TEST}"
+    ports:
+      - "${DB_PORT_TEST}:5433"
+    restart: unless-stopped
+    networks:
+      - mimosa

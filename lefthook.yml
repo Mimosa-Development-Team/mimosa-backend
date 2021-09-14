@@ -1,0 +1,6 @@
+pre-commit:
+  parallel: true
+  commands:
+    eslint:
+      glob: "*.js"
+      run: docker run --rm -it -v ${PWD}:/app api_mimosaapp sh -c "yarn lint:fix {staged_files}" && git add {staged_files}
