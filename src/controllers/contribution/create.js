@@ -1,8 +1,6 @@
 const {
   mmContribution,
-  mmContributionRelation,
-  mmRelatedMedia,
-  mmContributionDraft
+  mmRelatedMedia
 } = require('../../database/models')
 const { errorResponse, payloadValidator } = require('../../../helpers')
 
@@ -35,7 +33,7 @@ const validate = async (req, res, next) => {
         },
         userId: {
           type: 'string',
-          maxLength: 40
+          maxLength: 60
         },
         status: {
           type: 'string',
@@ -46,21 +44,16 @@ const validate = async (req, res, next) => {
           maxLength: 26
         },
         parentId: {
-          type: 'string',
-          maxLength: 10
-        },
-        parentUuid: {
-          type: 'string',
-          maxLength: 40
+          type: ['null', 'integer']
         },
         hypothesisStatus: {
           type: 'string'
         },
-        relatedMedia: {
-          type: 'array'
-        },
         method: {
           type: 'string'
+        },
+        mainParentId: {
+          type: ['null', 'integer']
         }
       },
       required: [
@@ -84,7 +77,9 @@ const validate = async (req, res, next) => {
       userId: req.body.userId,
       status: req.body.status,
       version: req.body.version,
-      hypothesisStatus: req.body.hypothesisStatus
+      hypothesisStatus: req.body.hypothesisStatus,
+      mainParentId: req.body.mainParentId,
+      parentId: req.body.parentId
     }
 
     const payloadValid = payloadValidator(payloadSchema, payloadData)
@@ -94,43 +89,7 @@ const validate = async (req, res, next) => {
         message: payloadValid
       })
     }
-    let findAllRelation = null
-    if (req.body.category !== 'question') {
-      findAllRelation = await mmContributionRelation.findAll({
-        where: {
-          parentQuestionUuid: req.body.parentQuestionUuid
-        }
-      })
-    }
-
-    req.allContribution = findAllRelation
-
     req.payload = payloadData
-    const relatedMediapayloadData = []
-    if (req.body.relatedMedia) {
-      for (let i = 0; i < req.body.relatedMedia.length; i++) {
-        const relatedMediaData = {}
-        if (!req.body.relatedMedia[i].id) {
-          if (req.body.relatedMedia[i].conferenceName) {
-            relatedMediaData.conferenceName =
-              req.body.relatedMedia[i].conferenceName
-            relatedMediaData.conferenceDateDetails =
-              req.body.relatedMedia[i].conferenceDateDetails
-          }
-          if (req.body.relatedMedia[i].title) {
-            relatedMediaData.mediaDetails = {
-              title: req.body.relatedMedia[i].title,
-              link: req.body.relatedMedia[i].link
-            }
-          }
-        }
-
-        relatedMediapayloadData.push(relatedMediaData)
-      }
-    }
-
-    req.relatedMediapayloadData = relatedMediapayloadData
-
     return next()
   } catch (error) {
     const response = errorResponse(error)
@@ -141,200 +100,42 @@ const validate = async (req, res, next) => {
 
 const create = async (req, res, next) => {
   try {
-    if (req.body.method === 'new') {
-      req.payload.updatedAt = Date.now()
-      const newContribution = await mmContribution.create(req.payload)
-      if (req.payload.status === 'draft') {
-        const draftPayload = newContribution.dataValues
-        if (req.body.category !== 'question') {
-          draftPayload.parentQuestionUuid = req.body.parentQuestionUuid
-        } else {
-          draftPayload.id = newContribution.dataValues.id
-        }
-        await mmContributionDraft.create(draftPayload)
+    const saveContribution = await mmContribution.create(req.payload)
+    let relatedmedia = []
+    if (req.body.category === 'question') {
+      if (req.body.relatedmedia.length === 1 && !req.body.relatedmedia[0].title) {
+        relatedmedia = []
       } else {
-        if (req.allContribution) {
-          for (let i = 0; i < req.allContribution.length; i++) {
-            if (req.body.category === 'hypothesis') {
-              for (let i = 0; i < req.allContribution.length; i++) {
-                const fetchContribution = await mmContribution.findOne({
-                  where: {
-                    id: req.allContribution[i].dataValues.contribChildId
-                  }
-                })
-
-                if (fetchContribution.dataValues.category === 'question') {
-                  const findDraft = await mmContributionDraft.findOne({
-                    where: {
-                      id: fetchContribution.dataValues.id
-                    }
-                  })
-
-                  if (findDraft) {
-                    findDraft.dataValues.status = 'publish'
-                    await mmContribution.update(findDraft.dataValues, {
-                      where: {
-                        id: fetchContribution.dataValues.id
-                      }
-                    })
-
-                    await findDraft.destroy({
-                      where: {
-                        id: fetchContribution.dataValues.id
-                      }
-                    })
-                  }
-                }
+        relatedmedia = []
+        for (let i = 0; i < req.body.relatedmedia.length; i++) {
+          if (req.body.relatedmedia[i].title) {
+            relatedmedia.push({
+              contributionId: saveContribution.id,
+              userId: req.body.userId,
+              mediaDetails: {
+                title: req.body.relatedmedia[i].title,
+                link: req.body.relatedmedia[i].link
               }
-            }
-
-            if (req.body.category === 'experiment') {
-              for (let i = 0; i < req.allContribution.length; i++) {
-                const fetchContribution = await mmContribution.findOne({
-                  where: {
-                    id: req.allContribution[i].dataValues.contribChildId
-                  }
-                })
-
-                if (
-                  fetchContribution.dataValues.category === 'question' ||
-                  fetchContribution.dataValues.category === 'hypothesis'
-                ) {
-                  const findDraft = await mmContributionDraft.findOne({
-                    where: {
-                      id: fetchContribution.dataValues.id
-                    }
-                  })
-                  if (findDraft) {
-                    findDraft.dataValues.status = 'publish'
-                    await mmContribution.update(findDraft.dataValues, {
-                      where: {
-                        id: fetchContribution.dataValues.id
-                      }
-                    })
-
-                    await findDraft.destroy({
-                      where: {
-                        id: fetchContribution.dataValues.id
-                      }
-                    })
-                  }
-                }
-              }
-            }
-
-            if (req.body.category === 'data') {
-              for (let i = 0; i < req.allContribution.length; i++) {
-                const fetchContribution = await mmContribution.findOne({
-                  where: {
-                    id: req.allContribution[i].dataValues.contribChildId
-                  }
-                })
-
-                if (
-                  fetchContribution.dataValues.category !== 'analysis' ||
-                  fetchContribution.dataValues.category !== 'data'
-                ) {
-                  const findDraft = await mmContributionDraft.findOne({
-                    where: {
-                      id: fetchContribution.dataValues.id
-                    }
-                  })
-                  if (findDraft) {
-                    findDraft.dataValues.status = 'publish'
-                    await mmContribution.update(findDraft.dataValues, {
-                      where: {
-                        id: fetchContribution.dataValues.id
-                      }
-                    })
-
-                    await findDraft.destroy({
-                      where: {
-                        id: fetchContribution.dataValues.id
-                      }
-                    })
-                  }
-                }
-              }
-            }
-            if (req.body.category === 'analysis') {
-              for (let i = 0; i < req.allContribution.length; i++) {
-                const fetchContribution = await mmContribution.findOne({
-                  where: {
-                    id: req.allContribution[i].dataValues.contribChildId
-                  }
-                })
-
-                if (fetchContribution.dataValues.category !== 'analysis') {
-                  const findDraft = await mmContributionDraft.findOne({
-                    where: {
-                      id: fetchContribution.dataValues.id
-                    }
-                  })
-
-                  if (findDraft) {
-                    findDraft.dataValues.status = 'publish'
-                    if (findDraft.dataValues.userId === req.payload.userId) {
-                      await mmContribution.update(findDraft.dataValues, {
-                        where: {
-                          id: fetchContribution.dataValues.id
-                        }
-                      })
-
-                      await findDraft.destroy({
-                        where: {
-                          id: fetchContribution.dataValues.id
-                        }
-                      })
-                    }
-                  }
-                }
-              }
-            }
+            })
           }
         }
       }
-
-      req.data = {
-        data: newContribution.dataValues
-      }
-
-      for (let i = 0; i < req.relatedMediapayloadData.length; i++) {
-        req.relatedMediapayloadData[i].contributionId =
-          newContribution.dataValues.id
-        req.relatedMediapayloadData[i].userId =
-          newContribution.dataValues.userId
-      }
-
-      const contributionRelationData = req.body.parentId
-        ? {
-            contribParentId: req.body.parentId,
-            contribChildId: newContribution.dataValues.id,
-            parentQuestionUuid: req.body.parentUuid
+      if (req.body.conferenceName) {
+        relatedmedia.push({
+          contributionId: saveContribution.id,
+          userId: req.body.userId,
+          conferenceName: req.body.conferenceName,
+          conferenceDateDetails: {
+            presentationDetails: req.body.presentationDetails,
+            startTime: req.body.startTime,
+            endTime: req.body.endTime
           }
-        : {
-            contribParentId: 0,
-            contribChildId: newContribution.dataValues.id,
-            parentQuestionUuid: newContribution.dataValues.uuid
-          }
-
-      const newContributionRelation = await mmContributionRelation.create(
-        contributionRelationData
-      )
-
-      req.contribution = {
-        contribution: newContributionRelation.dataValues
+        })
       }
-
-      const newMmRelationMedia = await mmRelatedMedia.bulkCreate(
-        req.relatedMediapayloadData
-      )
-
-      req.relatedMedia = {
-        relatedMedia: newMmRelationMedia.dataValues
-      }
+      const saveRm = await mmRelatedMedia.bulkCreate(relatedmedia, { returning: true })
+      req.saveRm = saveRm
     }
-
+    req.saveContribution = saveContribution
     return next()
   } catch (error) {
     // TODO: Create a better error handling for sequelize validation errors
@@ -353,11 +154,7 @@ const create = async (req, res, next) => {
 
 const response = async (req, res) => {
   try {
-    res.status(201).json({
-      data: req.data.data,
-      relatedMedia: req.relatedMedia.relatedMedia,
-      contribution: req.contribution.contribution
-    })
+    res.status(201).json({ contribution: req.saveContribution, relatedmedia: req.saveRm || [] })
   } catch (error) {
     const response = errorResponse(error)
 

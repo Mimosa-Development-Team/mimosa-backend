@@ -1,4 +1,5 @@
 ('use strict')
+const sequelizePaginate = require('sequelize-paginate')
 module.exports = (sequelize, DataTypes) => {
   const Contribution = sequelize.define(
     'mmContribution',
@@ -54,7 +55,7 @@ module.exports = (sequelize, DataTypes) => {
       parentId: {
         type: DataTypes.INTEGER
       },
-      hierarchyLevel: {
+      mainParentId: {
         type: DataTypes.INTEGER
       },
       createdAt: {
@@ -72,23 +73,36 @@ module.exports = (sequelize, DataTypes) => {
       createdAt: false
     }
   )
-  Contribution.isHierarchy()
-  Contribution.sync()
-
+  sequelizePaginate.paginate(Contribution)
   Contribution.associate = (models) => {
     Contribution.belongsTo(models.mmUser, {
-      foreignKey: 'userId'
+      foreignKey: 'userId',
+      as: 'poster'
     })
-    Contribution.hasOne(models.mmComment, {
-      foreignKey: 'contributionId'
+    Contribution.hasMany(models.mmComment, {
+      foreignKey: 'contributionId',
+      as: 'commentCount'
+    })
+    Contribution.hasMany(models.mmRelatedMedia, {
+      foreignKey: 'contributionId',
+      as: 'relatedMediaCount'
+    })
+    Contribution.hasMany(models.mmRelatedMedia, {
+      foreignKey: 'contributionId',
+      as: 'relatedmedia'
     })
     Contribution.hasOne(models.mmContributionDraft, {
-      foreignKey: 'id'
+      foreignKey: 'id',
+      as: 'draft'
     })
-    Contribution.belongsTo(Contribution, { as: 'parents', foreignKey: 'parentId' })
-    Contribution.hasMany(Contribution, { as: 'childrens', foreignKey: 'parentId' })
-    Contribution.belongsToMany(Contribution, { as: 'descendent', foreignKey: 'ancestorId', through: models.mmContributionsancestors })
-    Contribution.belongsToMany(Contribution, { as: 'ancestor', foreignKey: 'mmContributionId', through: models.mmContributionsancestors })
+    Contribution.hasMany(Contribution, {
+      foreignKey: 'parentId',
+      as: 'children'
+    })
+    Contribution.hasMany(Contribution, {
+      foreignKey: 'mainParentId',
+      as: 'total'
+    })
   }
 
   Contribution.getQuestions = async (orderBy) => {

@@ -54,6 +54,7 @@
     "sequelize": "^6.5.0",
     "sequelize-hierarchy": "^2.0.4",
     "sequelize-hierarchy-fork": "^1.0.0",
+    "sequelize-paginate": "^1.1.6",
     "swagger-jsdoc": "6.0.0",
     "swagger-ui-express": "^4.1.6"
   },

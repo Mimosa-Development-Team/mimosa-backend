@@ -50,7 +50,7 @@ module.exports = {
       parentId: {
         type: Sequelize.INTEGER
       },
-      hierarchyLevel: {
+      mainParentId: {
         type: Sequelize.INTEGER
       },
       status: {
