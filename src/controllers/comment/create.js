@@ -67,8 +67,7 @@ const create = async (req, res, next) => {
         id: req.body.contributionId
       }
     })
-    console.log('TEST', `${process.env.API_BASE_URL}${'/top.png'}`)
-    if (checkUser.emailNotification) {
+    if (checkUser && checkUser.emailNotification) {
       const mail = await mailcomposer({
         from: `Mail Gun Test <postmaster@${process.env.MAILGUN_DOMAIN}>`,
         to: checkUser.email,
