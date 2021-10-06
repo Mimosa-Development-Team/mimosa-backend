@@ -15,7 +15,6 @@ CREATE OR REPLACE FUNCTION public.sp_get_user_question(IN paramuserid uuid, orde
     "parentQuestionUuid" uuid,
     "relatedMediaCount" integer,
     "commentCount" integer,
-    "total" integer,
     "postedBy" character varying,
     "userColor" character varying
 ) AS
@@ -31,7 +30,6 @@ $BODY$
     a."status",
     a."createdAt",
     a."updatedAt",
-    (SELECT COUNT(id) FROM "mmContribution" WHERE "mainParentId" = a."id") AS "total",
     (SELECT "subject" FROM "mmContribution" WHERE "id" = b."contribParentId") AS "parentTitle",
     b."parentQuestionUuid",
     (SELECT COUNT(id) FROM "mmRelatedMedia" WHERE "contributionId" = b."contribChildId") AS "relatedMediaCount",
