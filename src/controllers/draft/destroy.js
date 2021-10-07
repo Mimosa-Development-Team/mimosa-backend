@@ -48,7 +48,7 @@ const destroy = async (req, res, next) => {
 
 const response = async (req, res) => {
   try {
-    res.status(200).json({ message: 'Draft Deleted.' })
+    res.status(200).json({ message: 'Draft Deleted.', data: req.findContributionDraft })
   } catch (error) {
     const response = errorResponse(error)
 

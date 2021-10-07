@@ -7,7 +7,6 @@ const { errorResponse } = require('../../../helpers')
 
 const validate = async (req, res, next) => {
   try {
-
     const contribution = await mmContribution.findOne({
       where: {
         id: req.params.contributionId
@@ -36,24 +35,23 @@ const validate = async (req, res, next) => {
 
 // function to destroy a contribution,
 // its related drafts and its relations
-async function destroyAllRelated(contribution){
-    
-    await mmContributionRelation.destroy({
-      where: {
-        contribChildId:
-          contribution.id,
-      }
-    })
-    await mmContributionDraft.destroy({
-      where: {
-        id: contribution.id,
-      }
-    })
-    await contribution.destroy()
+async function destroyAllRelated (contribution) {
+  await mmContributionRelation.destroy({
+    where: {
+      contribChildId:
+          contribution.id
+    }
+  })
+  await mmContributionDraft.destroy({
+    where: {
+      id: contribution.id
+    }
+  })
+  await contribution.destroy()
 }
 
 const destroy = async (req, res, next) => {
-  //only destroying leaves is allowed.
+  // only destroying leaves is allowed.
 
   try {
     // destroy contribution
@@ -70,7 +68,7 @@ const destroy = async (req, res, next) => {
 
 const response = async (req, res) => {
   try {
-    res.status(200).json({ message: 'Related Media Deleted.' })
+    res.status(200).json({ message: 'Related Media Deleted.', data: req.contribution })
   } catch (error) {
     const response = errorResponse(error)
 
