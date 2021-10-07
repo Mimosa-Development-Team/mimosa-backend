@@ -173,7 +173,6 @@ const update = async (req, res, next) => {
           }
         ]
       })
-      console.log(results)
       if (results.children.length > 0) {
         for (let h = 0; h < results.children.length; h++) {
           await mmContribution.update({
