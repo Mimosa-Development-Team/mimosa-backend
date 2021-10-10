@@ -16,7 +16,8 @@
       "postedBy" character varying,
       "userColor" character varying,
       "relatedMediaCount" integer,
-      "commentCount" integer
+      "commentCount" integer,
+      "total" integer
     ) AS $BODY$
   SELECT a."id",
     a."uuid",
@@ -42,7 +43,12 @@
       SELECT COUNT(id)
       FROM "mmComment"
       WHERE "contributionId" = a."id"
-    ) AS "commentCount"
+    ) AS "commentCount",
+    (
+      SELECT COUNT(id)
+      FROM "mmContribution"
+      WHERE "mainParentId" = a."id"
+    ) AS "total"
   FROM "mmContribution" a
     LEFT JOIN "mmUser" c ON a."userId" = c."id"
   WHERE a."category" = 'question'
