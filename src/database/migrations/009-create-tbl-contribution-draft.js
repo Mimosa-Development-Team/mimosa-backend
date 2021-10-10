@@ -4,7 +4,6 @@ module.exports = {
     return queryInterface.createTable('mmContributionDraft', {
       id: {
         allowNull: false,
-        autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER
       },
@@ -12,11 +11,6 @@ module.exports = {
         type: Sequelize.UUID,
         defaultValue: Sequelize.UUIDV4,
         uniqueKey: true,
-        allowNull: false
-      },
-      parentQuestionUuid: {
-        type: Sequelize.UUID,
-        defaultValue: Sequelize.UUIDV4,
         allowNull: false
       },
       category: {
@@ -52,6 +46,12 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: true
       },
+      parentId: {
+        type: Sequelize.INTEGER
+      },
+      mainParentId: {
+        type: Sequelize.INTEGER
+      },
       status: {
         type: Sequelize.STRING,
         allowNull: false
@@ -62,7 +62,7 @@ module.exports = {
       },
       updatedAt: {
         type: Sequelize.DATE,
-        onUpdate: Sequelize.fn('now')
+        defaultValue: Sequelize.fn('NOW')
       }
     })
   },

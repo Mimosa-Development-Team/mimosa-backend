@@ -1,3 +1,4 @@
+/* eslint-disable no-const-assign */
 const {
   mmContribution,
   mmRelatedMedia,
@@ -16,6 +17,12 @@ const validatePayload = async (req, res, next) => {
     const payloadSchema = {
       type: 'object',
       properties: {
+        id: {
+          type: 'integer'
+        },
+        category: {
+          type: 'string'
+        },
         subject: {
           type: 'string'
         },
@@ -62,6 +69,8 @@ const validatePayload = async (req, res, next) => {
     }
 
     const payloadData = {
+      id: req.body.id,
+      category: req.body.category,
       subject: req.body.subject,
       details: req.body.details,
       tags: req.body.tags,
@@ -83,28 +92,30 @@ const validatePayload = async (req, res, next) => {
     }
     let relatedmedia = []
     const oldRelatedMedia = []
-    if (req.body.relatedmedia.length === 1 && !req.body.relatedmedia[0].title) {
+    if (req.body.relatedmedia && req.body.relatedmedia.length === 1 && !req.body.relatedmedia[0].title) {
       relatedmedia = []
     } else {
       relatedmedia = []
-      for (let i = 0; i < req.body.relatedmedia.length; i++) {
-        if (!req.body.relatedmedia[i].id) {
-          relatedmedia.push({
-            contributionId: req.body.id,
-            userId: req.body.userId,
-            mediaDetails: {
-              title: req.body.relatedmedia[i].title,
-              link: req.body.relatedmedia[i].link
-            }
-          })
-        } else {
-          oldRelatedMedia.push({
-            id: req.body.relatedmedia[i].id,
-            mediaDetails: {
-              title: req.body.relatedmedia[i].title,
-              link: req.body.relatedmedia[i].link
-            }
-          })
+      if (req.body.relatedmedia) {
+        for (let i = 0; i < req.body.relatedmedia.length; i++) {
+          if (!req.body.relatedmedia[i].id) {
+            relatedmedia.push({
+              contributionId: req.body.id,
+              userId: req.body.userId,
+              mediaDetails: {
+                title: req.body.relatedmedia[i].title,
+                link: req.body.relatedmedia[i].link
+              }
+            })
+          } else {
+            oldRelatedMedia.push({
+              id: req.body.relatedmedia[i].id,
+              mediaDetails: {
+                title: req.body.relatedmedia[i].title,
+                link: req.body.relatedmedia[i].link
+              }
+            })
+          }
         }
       }
     }
@@ -133,6 +144,9 @@ const validatePayload = async (req, res, next) => {
     req.oldRelatedMedia = oldRelatedMedia
     req.relatedmedia = relatedmedia
     req.payload = cleanObject(payloadData)
+    if (req.body.id) {
+      req.payload.updatedAt = new Date()
+    }
     return next()
   } catch (error) {
     const response = errorResponse(error)
@@ -207,6 +221,55 @@ const update = async (req, res, next) => {
         }
       }
     }
+    let updateContribution = null
+    if (req.contribution.status === 'publish' && req.body.status === 'draft') {
+      const findDraft = await mmContributionDraft.findOne({
+        where: {
+          id: req.body.id
+        }
+      })
+      if (findDraft) {
+        updateContribution = await findDraft.update(req.payload)
+      } else {
+        updateContribution = await mmContributionDraft.create(req.payload)
+      }
+    }
+    if (req.contribution.status === 'publish' && req.body.status === 'publish') {
+      updateContribution = await req.contribution.update(req.payload)
+      if (updateContribution) {
+        const findDraft = await mmContributionDraft.findOne({
+          where: {
+            id: req.body.id
+          }
+        })
+        if (findDraft) {
+          findDraft.destroy()
+        }
+      }
+    }
+
+    if (req.body.category === 'analysis' && req.body.status === 'publish') {
+      await mmContribution.update({
+        status: 'publish'
+      }, {
+        where: {
+          userId: req.token.id,
+          mainParentId: req.body.mainParentId
+        }
+      })
+      await mmContribution.update({
+        status: 'publish'
+      }, {
+        where: {
+          userId: req.token.id,
+          id: req.body.mainParentId
+        }
+      })
+    }
+
+    if (req.contribution.status === 'draft' && (req.body.status === 'draft' || req.body.status === 'publish')) {
+      updateContribution = await req.contribution.update(req.payload)
+    }
 
     for (let om = 0; om < req.oldRelatedMedia.length; om++) {
       await mmRelatedMedia.update(req.oldRelatedMedia[om], {
@@ -229,7 +292,39 @@ const update = async (req, res, next) => {
       })
     }
     // console.log(req.payload)
-    const updateContribution = await req.contribution.update(req.payload)
+
+    const conference = {
+      id: null,
+      conferenceName: '',
+      presentationDetails: '',
+      startTime: '',
+      endTime: ''
+    }
+    const getAllRmedia = await mmRelatedMedia.findAll({
+      where: {
+        contributionId: req.body.id
+      }
+    })
+    const rMedia = []
+
+    for (let i = 0; i < getAllRmedia.length; i++) {
+      if (getAllRmedia[i].conferenceDateDetails) {
+        conference.id = getAllRmedia[i].id
+        conference.conferenceName = getAllRmedia[i].conferenceName
+        conference.presentationDetails = getAllRmedia[i].conferenceDateDetails.presentationDetails
+        conference.startTime = getAllRmedia[i].conferenceDateDetails.startTime
+        conference.endTime = getAllRmedia[i].conferenceDateDetails.endTime
+      } else {
+        const temp = {
+          id: getAllRmedia[i].id,
+          link: getAllRmedia[i].mediaDetails.link,
+          title: getAllRmedia[i].mediaDetails.title
+        }
+        rMedia.push(temp)
+      }
+    }
+    req.rMedia = rMedia
+    req.conferenceMedia = conference
     req.updateContribution = updateContribution
 
     return next()
@@ -250,7 +345,7 @@ const update = async (req, res, next) => {
 
 const response = async (req, res) => {
   try {
-    res.status(200).json({ message: 'Contribution Updated.', data: req.updateContribution })
+    res.status(200).json({ message: 'Contribution Updated.', data: req.updateContribution, conference: req.conferenceMedia, relatedmedia: req.rMedia })
   } catch (error) {
     const response = errorResponse(error)
 

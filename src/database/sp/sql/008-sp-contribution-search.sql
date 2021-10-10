@@ -14,7 +14,6 @@ CREATE OR REPLACE FUNCTION public.get_search_contribution(searchContribution cha
     "status" character varying,
     "updatedAt" timestamp,
     "createdAt" timestamp,
-    "parentQuestionId" uuid,
     "postedBy" character varying,
       "userColorPoster" character varying
   ) AS $BODY$
@@ -31,7 +30,6 @@ select a."id",
   a."status",
   a."updatedAt",
   a."createdAt",
-  b."parentQuestionUuid",
   CONCAT(c."firstName", ' ', c."lastName") AS "postedBy",
    c."userColor" AS "userColorPoster"
 from "mmContribution" a 

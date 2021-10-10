@@ -3,7 +3,6 @@ module.exports = () => {
     {
       id: 1,
       uuid: 'dd415459-f1af-4f78-8895-55c13b20de5a',
-      parentQuestionUuid: 'a56c199f-be27-4be9-acf5-aeb924eafcc1',
       category: 'question',
       subject: 'TEST DRAFT',
       details: 'Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.',
