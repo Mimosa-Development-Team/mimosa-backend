@@ -119,17 +119,15 @@ const create = async (req, res, next) => {
       })
     }
     const newComment = await mmComment.create(req.payload)
-    if (checkUser.notification) {
-      const notificationData = {
-        poster: checkContribution.userId,
-        user: req.body.userId,
-        comment: req.body.comment,
-        type: checkContribution.category,
-        commentId: newComment.id,
-        contributionId: req.body.contributionId
-      }
-      await mmNotification.create(notificationData)
+    const notificationData = {
+      poster: checkContribution.userId,
+      user: req.body.userId,
+      comment: req.body.comment,
+      type: checkContribution.category,
+      commentId: newComment.id,
+      contributionId: req.body.contributionId
     }
+    await mmNotification.create(notificationData)
     req.data = {
       data: newComment.dataValues
     }

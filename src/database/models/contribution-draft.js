@@ -16,11 +16,6 @@ module.exports = (sequelize, DataTypes) => {
         uniqueKey: true,
         allowNull: false
       },
-      parentQuestionUuid: {
-        type: DataTypes.UUID,
-        defaultValue: DataTypes.UUIDV4,
-        allowNull: false
-      },
       category: {
         type: DataTypes.STRING,
         allowNull: false
@@ -56,6 +51,12 @@ module.exports = (sequelize, DataTypes) => {
       status: {
         type: DataTypes.STRING,
         allowNull: false
+      },
+      parentId: {
+        type: DataTypes.INTEGER
+      },
+      mainParentId: {
+        type: DataTypes.INTEGER
       },
       createdAt: {
         type: DataTypes.DATE,

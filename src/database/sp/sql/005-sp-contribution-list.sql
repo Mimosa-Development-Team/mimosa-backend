@@ -16,7 +16,6 @@ CREATE OR REPLACE FUNCTION public.sp_get_contribution_list(IN contributionId uui
       "createdAt" timestamp,
       "contribParentId" integer,
       "contribChildId" integer,
-      "parentQuestionId" uuid,
       "postedBy" character varying,
       "userColorPoster" character varying,
       "relatedMediaCount" integer,
@@ -38,7 +37,6 @@ $BODY$
    a."createdAt",
    b."contribParentId", 
    b."contribChildId", 
-   b."parentQuestionUuid",
    CONCAT(c."firstName", ' ', c."lastName") AS "postedBy",
    c."userColor" AS "userColorPoster",
    (SELECT COUNT(id) FROM "mmRelatedMedia" WHERE "contributionId" = b."contribChildId") AS "relatedMediaCount",
@@ -46,7 +44,6 @@ $BODY$
   FROM "mmContribution" a 
   LEFT JOIN "mmContributionRelation" b ON b."contribChildId" = a."id"
   LEFT JOIN "mmUser" c ON a."userId" = c."id"
-  WHERE b."parentQuestionUuid" = contributionId
   ORDER BY b."contribParentId";
 $BODY$
   LANGUAGE sql VOLATILE;

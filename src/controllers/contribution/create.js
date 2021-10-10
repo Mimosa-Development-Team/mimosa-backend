@@ -133,7 +133,38 @@ const create = async (req, res, next) => {
         })
       }
       const saveRm = await mmRelatedMedia.bulkCreate(relatedmedia, { returning: true })
-      req.saveRm = saveRm
+      const conference = {
+        id: null,
+        conferenceName: '',
+        presentationDetails: '',
+        startTime: '',
+        endTime: ''
+      }
+      const getAllRmedia = await mmRelatedMedia.findAll({
+        where: {
+          contributionId: saveContribution.id
+        }
+      })
+      const rMedia = []
+
+      for (let i = 0; i < getAllRmedia.length; i++) {
+        if (getAllRmedia[i].conferenceDateDetails) {
+          conference.id = getAllRmedia[i].id
+          conference.conferenceName = getAllRmedia[i].conferenceName
+          conference.presentationDetails = getAllRmedia[i].conferenceDateDetails.presentationDetails
+          conference.startTime = getAllRmedia[i].conferenceDateDetails.startTime
+          conference.endTime = getAllRmedia[i].conferenceDateDetails.endTime
+        } else {
+          const temp = {
+            id: getAllRmedia[i].id,
+            link: getAllRmedia[i].mediaDetails.link,
+            title: getAllRmedia[i].mediaDetails.title
+          }
+          rMedia.push(temp)
+        }
+      }
+      req.conference = conference
+      req.saveRm = rMedia
     }
     req.saveContribution = saveContribution
     return next()
@@ -154,7 +185,7 @@ const create = async (req, res, next) => {
 
 const response = async (req, res) => {
   try {
-    res.status(201).json({ contribution: req.saveContribution, relatedmedia: req.saveRm || [] })
+    res.status(201).json({ data: req.saveContribution, relatedmedia: req.saveRm || [], conference: req.conference })
   } catch (error) {
     const response = errorResponse(error)
 
