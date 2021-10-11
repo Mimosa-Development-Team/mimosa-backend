@@ -67,10 +67,11 @@ const create = async (req, res, next) => {
         id: req.body.contributionId
       }
     })
+    console.log(checkUser.email)
     if (checkUser && checkUser.emailNotification) {
       const mail = await mailcomposer({
         from: `Mail Gun Test <postmaster@${process.env.MAILGUN_DOMAIN}>`,
-        to: checkUser.email,
+        to: `${checkUser.email}`,
         subject: 'Hello',
         text: 'Testing some Mailgun awesomness!',
         html: `<!DOCTYPE html>
@@ -92,9 +93,8 @@ const create = async (req, res, next) => {
             <div style="background-color: white; text-align: center; padding: 60px; border-radius: 8px">
               <p style="font-family: Arial, Helvetica, sans-serif; text-align: center; font-size: 20px;"> Hello ${checkUser.firstName}! </p>
               <p style="font-family: Arial, Helvetica, sans-serif; text-align: center;">
-                <b>Charles Smith</b> commented on your <b style="color: gold">Question</b> Contributions.
+                <b>${checkUser.firstName} ${checkUser.lastName}</b> commented on your <b style="color: gold">Question</b> Contributions.
               </p>
-              <p>${req.body.comment}</p>
               <a href="/">
                 <button style="font-size: large; background-color: #f7882b; border: none; padding: 10px; width: 250px; border-radius: 25px; color: white;"> Click here to View </button>
               </a>
@@ -106,7 +106,7 @@ const create = async (req, res, next) => {
       })
       await mail.build(async function (mailBuildError, message) {
         const dataToSend = {
-          to: 'cloyd@offshorly.com',
+          to: checkUser.email,
           message: message.toString('ascii')
         }
 

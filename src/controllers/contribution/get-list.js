@@ -51,8 +51,19 @@ module.exports = async (req, res) => {
                     },
                     {
                       model: mmContribution,
-                      as: 'children'
-                    }, {
+                      as: 'children',
+                      include: [
+                        {
+                          model: mmUser,
+                          as: 'poster'
+                        },
+                        {
+                          model: mmContributionDraft,
+                          as: 'draft'
+                        }
+                      ]
+                    },
+                    {
                       model: mmContributionDraft,
                       as: 'draft'
                     }
