@@ -65,69 +65,76 @@ const create = async (req, res, next) => {
     const checkContribution = await mmContribution.findOne({
       where: {
         id: req.body.contributionId
-      }
-    })
-    console.log(checkUser.email)
-    if (checkUser && checkUser.emailNotification) {
-      const mail = await mailcomposer({
-        from: `Mail Gun Test <postmaster@${process.env.MAILGUN_DOMAIN}>`,
-        to: `${checkUser.email}`,
-        subject: 'Hello',
-        text: 'Testing some Mailgun awesomness!',
-        html: `<!DOCTYPE html>
-        <html>
-          <head>
-            <title>Peak Leadership Webapp</title>
-          </head>
-          <body style="padding: 100px; background-color: #121B3D; margin:0 auto;">
-            <div>
-            <div>
-                <img style="width: 100px;position: absolute; right: 0; top: 0" src="cid:https://mimosa-backendapp.herokuapp.com/top.png" />
-            </div>
-            <div>
-                <img style="width: 100px;position: absolute; left: 0; bottom: 0"  src="cid:https://mimosa-backendapp.herokuapp.com/bottom.png"
-            </div>
-            <div style="text-align: center; margin-bottom: 10px">
-                <img style="width: 200px"   src="cid:https://mimosa-backendapp.herokuapp.com/logo.png" />
-            </div>
-            <div style="background-color: white; text-align: center; padding: 60px; border-radius: 8px">
-              <p style="font-family: Arial, Helvetica, sans-serif; text-align: center; font-size: 20px;"> Hello ${checkUser.firstName}! </p>
-              <p style="font-family: Arial, Helvetica, sans-serif; text-align: center;">
-                <b>${checkUser.firstName} ${checkUser.lastName}</b> commented on your <b style="color: gold">Question</b> Contributions.
-              </p>
-              <a href="/">
-                <button style="font-size: large; background-color: #f7882b; border: none; padding: 10px; width: 250px; border-radius: 25px; color: white;"> Click here to View </button>
-              </a>
-            </div>
-            </div>
-          </body>
-        </html>`,
-        inline: ['top.png', 'bottom.png', 'logo.png']
-      })
-      await mail.build(async function (mailBuildError, message) {
-        const dataToSend = {
-          to: checkUser.email,
-          message: message.toString('ascii')
+      },
+      include: [
+        {
+          model: mmUser,
+          as: 'poster'
         }
-
-        await mg.messages().sendMime(dataToSend, async function (sendError, body) {
-          if (sendError) {
-            res.status(500).json(response)
-          }
-          next()
-        })
-      })
-    }
+      ]
+    })
     const newComment = await mmComment.create(req.payload)
-    const notificationData = {
-      poster: checkContribution.userId,
-      user: req.body.userId,
-      comment: req.body.comment,
-      type: checkContribution.category,
-      commentId: newComment.id,
-      contributionId: req.body.contributionId
+    if (checkContribution.userId !== req.body.userId) {
+      if (checkUser && checkUser.emailNotification) {
+        const mail = await mailcomposer({
+          from: `Mail Gun Test <postmaster@${process.env.MAILGUN_DOMAIN}>`,
+          to: `${checkUser.email}`,
+          subject: 'Hello',
+          text: 'Testing some Mailgun awesomness!',
+          html: `<!DOCTYPE html>
+          <html>
+            <head>
+              <title>Peak Leadership Webapp</title>
+            </head>
+            <body style="padding: 100px; background-color: #121B3D; margin:0 auto;">
+              <div>
+              <div>
+                  <img style="width: 100px;position: absolute; right: 0; top: 0" src="cid:https://mimosa-backendapp.herokuapp.com/top.png" />
+              </div>
+              <div>
+                  <img style="width: 100px;position: absolute; left: 0; bottom: 0"  src="cid:https://mimosa-backendapp.herokuapp.com/bottom.png"
+              </div>
+              <div style="text-align: center; margin-bottom: 10px">
+                  <img style="width: 200px"   src="cid:https://mimosa-backendapp.herokuapp.com/logo.png" />
+              </div>
+              <div style="background-color: white; text-align: center; padding: 60px; border-radius: 8px">
+                <p style="font-family: Arial, Helvetica, sans-serif; text-align: center; font-size: 20px;"> Hello ${checkUser.firstName}! </p>
+                <p style="font-family: Arial, Helvetica, sans-serif; text-align: center;">
+                  <b>${checkUser.firstName} ${checkUser.lastName}</b> commented on your <b style="color: gold">Question</b> Contributions.
+                </p>
+                <a href="/">
+                  <button style="font-size: large; background-color: #f7882b; border: none; padding: 10px; width: 250px; border-radius: 25px; color: white;"> Click here to View </button>
+                </a>
+              </div>
+              </div>
+            </body>
+          </html>`,
+          inline: ['top.png', 'bottom.png', 'logo.png']
+        })
+        await mail.build(async function (mailBuildError, message) {
+          const dataToSend = {
+            to: checkContribution.poster.email,
+            message: message.toString('ascii')
+          }
+
+          await mg.messages().sendMime(dataToSend, async function (sendError, body) {
+            if (sendError) {
+              res.status(500).json(response)
+            }
+            next()
+          })
+        })
+      }
+      const notificationData = {
+        poster: checkContribution.userId,
+        user: req.body.userId,
+        comment: req.body.comment,
+        type: checkContribution.category,
+        commentId: newComment.id,
+        contributionId: req.body.contributionId
+      }
+      await mmNotification.create(notificationData)
     }
-    await mmNotification.create(notificationData)
     req.data = {
       data: newComment.dataValues
     }

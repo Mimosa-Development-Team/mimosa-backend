@@ -9,13 +9,15 @@ CREATE OR REPLACE FUNCTION public.sp_get_user_question(IN paramuserid uuid, orde
 	  "author" json,
 	  "userId" uuid,
 	  "status" character varying, 
+    "mainParentId" integer,
 	  "createdAt" timestamp,
 	  "updatedAt" timestamp,
 	  "parentTitle" character varying,
     "relatedMediaCount" integer,
     "commentCount" integer,
     "postedBy" character varying,
-    "userColor" character varying
+    "userColor" character varying,
+    "total" integer
 ) AS
 $BODY$
   select
@@ -27,13 +29,19 @@ $BODY$
     a."author",
     a."userId",
     a."status",
+    a."mainParentId",
     a."createdAt",
     a."updatedAt",
     (SELECT "subject" FROM "mmContribution" WHERE "id" = b."contribParentId") AS "parentTitle",
     (SELECT COUNT(id) FROM "mmRelatedMedia" WHERE "contributionId" = b."contribChildId") AS "relatedMediaCount",
     (SELECT COUNT(id) FROM "mmComment" WHERE "contributionId" = b."contribChildId") AS "commentCount",
     CONCAT(c."firstName", ' ', c."lastName") AS "postedBy",
-    c."userColor"
+    c."userColor",
+    (
+      SELECT COUNT(id)
+      FROM "mmContribution"
+      WHERE "mainParentId" = a."id"
+    ) AS "total"
   from "mmContribution" a
   LEFT JOIN "mmContributionRelation" b ON b."contribChildId" = a."id"
     LEFT JOIN "mmUser" c ON a."userId" = c."id"

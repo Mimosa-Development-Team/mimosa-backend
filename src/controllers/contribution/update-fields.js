@@ -9,6 +9,7 @@ const {
   payloadValidator,
   cleanObject
 } = require('../../../helpers')
+const { Op } = require('sequelize')
 
 const validatePayload = async (req, res, next) => {
   try {
@@ -247,14 +248,35 @@ const update = async (req, res, next) => {
         }
       }
     }
-
+    console.log('req.token.id', req.token.id)
     if (req.body.category === 'analysis' && req.body.status === 'publish') {
+      const publish = await mmContribution.update({
+        status: 'publish'
+      }, {
+        where: {
+          userId: req.token.id,
+          mainParentId: updateContribution.mainParentId
+        }
+      })
+      console.log('publish', publish)
       await mmContribution.update({
         status: 'publish'
       }, {
         where: {
           userId: req.token.id,
-          mainParentId: req.body.mainParentId
+          id: updateContribution.mainParentId
+        }
+      })
+    }
+
+    if (req.body.category === 'data' && req.body.status === 'publish') {
+      await mmContribution.update({
+        status: 'publish'
+      }, {
+        where: {
+          userId: req.token.id,
+          mainParentId: updateContribution.mainParentId,
+          category: { [Op.notIn]: ['analysis'] }
         }
       })
       await mmContribution.update({
@@ -262,7 +284,48 @@ const update = async (req, res, next) => {
       }, {
         where: {
           userId: req.token.id,
-          id: req.body.mainParentId
+          id: updateContribution.mainParentId
+        }
+      })
+    }
+
+    if (req.body.category === 'experiment' && req.body.status === 'publish') {
+      await mmContribution.update({
+        status: 'publish'
+      }, {
+        where: {
+          userId: req.token.id,
+          mainParentId: updateContribution.mainParentId,
+          category: { [Op.notIn]: ['analysis', 'data'] }
+        }
+      })
+      await mmContribution.update({
+        status: 'publish'
+      }, {
+        where: {
+          userId: req.token.id,
+          id: updateContribution.mainParentId
+        }
+      })
+    }
+
+    if (req.body.category === 'hypothesis' && req.body.status === 'publish') {
+      await mmContribution.update({
+        status: 'publish'
+      }, {
+        where: {
+          userId: req.token.id,
+          mainParentId: updateContribution.mainParentId,
+          category: { [Op.notIn]: ['analysis', 'data', 'experiment'] }
+          // ]
+        }
+      })
+      await mmContribution.update({
+        status: 'publish'
+      }, {
+        where: {
+          userId: req.token.id,
+          id: updateContribution.mainParentId
         }
       })
     }
