@@ -84,12 +84,6 @@ module.exports = async (req, res) => {
         }
       ]
     })
-    // const totalChild = await mmContribution.count({
-    //   where: {
-    //     mainParentId: 1
-    //   }
-    // })
-    // results.total = await totalChild
     res
       .status(200)
       .json(results)
