@@ -11,10 +11,10 @@ module.exports = async (req, res) => {
   try {
     const page = req.query.page
     const limit = req.query.limit
-    // const [results] = await mmContribution.getQuestions(req.query.orderBy)
     const results = await mmContribution.findAll({
       where: {
-        category: 'question'
+        category: 'question',
+        status: 'publish'
       },
       order: [
         ['updatedAt', req.query.orderBy]
@@ -40,10 +40,25 @@ module.exports = async (req, res) => {
     })
     let draftQ = []
     if (req.query.userId !== 'null' && parseInt(page) === 1) {
-      [draftQ] = await mmContributionDraft.getQuestions(
-        req.query.userId,
-        req.query.orderBy
-      )
+      draftQ = await mmContributionDraft.findAll({
+        where: {
+          category: 'question',
+          userId: req.token.id
+        },
+        order: [
+          ['updatedAt', req.query.orderBy]
+        ],
+        include: [
+          {
+            model: mmContributionDraft,
+            as: 'total'
+          },
+          {
+            model: mmUser,
+            as: 'poster'
+          }
+        ]
+      })
     }
 
     const startIndex = (page - 1) * limit

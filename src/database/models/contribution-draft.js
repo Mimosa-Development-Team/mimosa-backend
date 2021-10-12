@@ -72,16 +72,33 @@ module.exports = (sequelize, DataTypes) => {
       underscored: false
     }
   )
-
   Contribution.associate = (models) => {
-    Contribution.hasOne(models.mmContribution, {
+    Contribution.belongsTo(models.mmContribution, {
       foreignKey: 'id'
     })
-  }
-
-  Contribution.associate = (models) => {
     Contribution.belongsTo(models.mmUser, {
-      foreignKey: 'userId'
+      foreignKey: 'userId',
+      as: 'poster'
+    })
+    Contribution.hasMany(models.mmComment, {
+      foreignKey: 'contributionId',
+      as: 'commentCount'
+    })
+    Contribution.hasMany(models.mmRelatedMedia, {
+      foreignKey: 'contributionId',
+      as: 'relatedMediaCount'
+    })
+    Contribution.hasMany(models.mmRelatedMedia, {
+      foreignKey: 'contributionId',
+      as: 'relatedmedia'
+    })
+    Contribution.hasMany(Contribution, {
+      foreignKey: 'parentId',
+      as: 'children'
+    })
+    Contribution.hasMany(Contribution, {
+      foreignKey: 'mainParentId',
+      as: 'total'
     })
   }
 
