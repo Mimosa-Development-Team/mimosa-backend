@@ -1,4 +1,4 @@
-const { mmContribution } = require('../../database/models')
+const { mmContribution, mmComment, mmRelatedMedia, mmUser } = require('../../database/models')
 const { errorResponse } = require('../../../helpers')
 
 module.exports = async (req, res) => {
@@ -8,10 +8,32 @@ module.exports = async (req, res) => {
     let results = []
     let userContrib = []
     if (req.params.userId) {
-      [results] = await mmContribution.getUserQuestion(
-        req.params.userId,
-        req.params.orderBy
-      )
+      results = await mmContribution.findAll({
+        where: {
+          userId: req.params.userId
+        },
+        order: [
+          ['updatedAt', req.params.orderBy]
+        ],
+        include: [
+          {
+            model: mmComment,
+            as: 'commentCount'
+          },
+          {
+            model: mmRelatedMedia,
+            as: 'relatedMediaCount'
+          },
+          {
+            model: mmContribution,
+            as: 'total'
+          },
+          {
+            model: mmUser,
+            as: 'poster'
+          }
+        ]
+      })
     }
     if (req.params.userId) {
       [userContrib] = await mmContribution.getUserContributionCtr(
