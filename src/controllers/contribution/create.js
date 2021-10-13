@@ -1,6 +1,7 @@
 const {
   mmContribution,
-  mmRelatedMedia
+  mmRelatedMedia,
+  mmContributionDraft
 } = require('../../database/models')
 const { errorResponse, payloadValidator } = require('../../../helpers')
 
@@ -101,6 +102,10 @@ const validate = async (req, res, next) => {
 const create = async (req, res, next) => {
   try {
     const saveContribution = await mmContribution.create(req.payload)
+    if (req.payload.status === 'draft') {
+      req.payload.id = saveContribution.id
+      await mmContributionDraft.create(req.payload)
+    }
     let relatedmedia = []
     if (req.body.category === 'question') {
       if (req.body.relatedmedia.length === 1 && !req.body.relatedmedia[0].title) {
@@ -132,7 +137,7 @@ const create = async (req, res, next) => {
           }
         })
       }
-      const saveRm = await mmRelatedMedia.bulkCreate(relatedmedia, { returning: true })
+      await mmRelatedMedia.bulkCreate(relatedmedia, { returning: true })
       const conference = {
         id: null,
         conferenceName: '',
