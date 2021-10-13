@@ -100,14 +100,25 @@ const validatePayload = async (req, res, next) => {
       if (req.body.relatedmedia) {
         for (let i = 0; i < req.body.relatedmedia.length; i++) {
           if (!req.body.relatedmedia[i].id) {
-            relatedmedia.push({
-              contributionId: req.body.id,
-              userId: req.body.userId,
-              mediaDetails: {
-                title: req.body.relatedmedia[i].title,
-                link: req.body.relatedmedia[i].link
+            const checkRmedia = await mmRelatedMedia.findOne({
+              where: {
+                contributionId: req.body.id,
+                mediaDetails: {
+                  title: req.body.relatedmedia[i].title,
+                  link: req.body.relatedmedia[i].link
+                }
               }
             })
+            if (!checkRmedia) {
+              relatedmedia.push({
+                contributionId: req.body.id,
+                userId: req.body.userId,
+                mediaDetails: {
+                  title: req.body.relatedmedia[i].title,
+                  link: req.body.relatedmedia[i].link
+                }
+              })
+            }
           } else {
             oldRelatedMedia.push({
               id: req.body.relatedmedia[i].id,
@@ -248,23 +259,21 @@ const update = async (req, res, next) => {
         }
       }
     }
-    console.log('req.token.id', req.token.id)
     if (req.body.category === 'analysis' && req.body.status === 'publish') {
-      const publish = await mmContribution.update({
-        status: 'publish'
-      }, {
-        where: {
-          userId: req.token.id,
-          mainParentId: updateContribution.mainParentId
-        }
-      })
-      console.log('publish', publish)
       await mmContribution.update({
         status: 'publish'
       }, {
         where: {
           userId: req.token.id,
-          id: updateContribution.mainParentId
+          mainParentId: req.body.mainParentId
+        }
+      })
+      await mmContribution.update({
+        status: 'publish'
+      }, {
+        where: {
+          userId: req.token.id,
+          id: req.body.mainParentId
         }
       })
     }
@@ -275,7 +284,7 @@ const update = async (req, res, next) => {
       }, {
         where: {
           userId: req.token.id,
-          mainParentId: updateContribution.mainParentId,
+          mainParentId: req.body.mainParentId,
           category: { [Op.notIn]: ['analysis'] }
         }
       })
@@ -284,7 +293,7 @@ const update = async (req, res, next) => {
       }, {
         where: {
           userId: req.token.id,
-          id: updateContribution.mainParentId
+          id: req.body.mainParentId
         }
       })
     }
@@ -295,7 +304,7 @@ const update = async (req, res, next) => {
       }, {
         where: {
           userId: req.token.id,
-          mainParentId: updateContribution.mainParentId,
+          mainParentId: req.body.mainParentId,
           category: { [Op.notIn]: ['analysis', 'data'] }
         }
       })
@@ -304,7 +313,7 @@ const update = async (req, res, next) => {
       }, {
         where: {
           userId: req.token.id,
-          id: updateContribution.mainParentId
+          id: req.body.mainParentId
         }
       })
     }
@@ -315,7 +324,7 @@ const update = async (req, res, next) => {
       }, {
         where: {
           userId: req.token.id,
-          mainParentId: updateContribution.mainParentId,
+          mainParentId: req.body.mainParentId,
           category: { [Op.notIn]: ['analysis', 'data', 'experiment'] }
           // ]
         }
@@ -325,7 +334,7 @@ const update = async (req, res, next) => {
       }, {
         where: {
           userId: req.token.id,
-          id: updateContribution.mainParentId
+          id: req.body.mainParentId
         }
       })
     }
@@ -354,7 +363,6 @@ const update = async (req, res, next) => {
         }
       })
     }
-    // console.log(req.payload)
 
     const conference = {
       id: null,
