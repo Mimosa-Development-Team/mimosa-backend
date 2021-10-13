@@ -245,8 +245,7 @@ const update = async (req, res, next) => {
       } else {
         updateContribution = await mmContributionDraft.create(req.payload)
       }
-    }
-    if (req.contribution.status === 'publish' && req.body.status === 'publish') {
+    } else if (req.contribution.status === 'publish' && req.body.status === 'publish') {
       updateContribution = await req.contribution.update(req.payload)
       if (updateContribution) {
         const findDraft = await mmContributionDraft.findOne({
@@ -258,7 +257,32 @@ const update = async (req, res, next) => {
           findDraft.destroy()
         }
       }
+    } else if (req.contribution.status === 'draft' && (req.body.status === 'draft' || req.body.status === 'publish')) {
+      updateContribution = await req.contribution.update(req.payload)
+      if (req.body.status === 'publish') {
+        const findDraft = await mmContributionDraft.findOne({
+          where: {
+            id: req.body.id
+          }
+        })
+        if (findDraft) {
+          findDraft.destroy()
+        }
+      }
+    } else {
+      updateContribution = await req.contribution.update(req.payload)
+      if (req.body.status === 'publish') {
+        const findDraft = await mmContributionDraft.findOne({
+          where: {
+            id: req.body.id
+          }
+        })
+        if (findDraft) {
+          findDraft.destroy()
+        }
+      }
     }
+
     if (req.body.category === 'analysis' && req.body.status === 'publish') {
       await mmContribution.update({
         status: 'publish'
@@ -285,7 +309,7 @@ const update = async (req, res, next) => {
         where: {
           userId: req.token.id,
           mainParentId: req.body.mainParentId,
-          category: { [Op.notIn]: ['analysis'] }
+          category: { [Op.in]: ['hypothesis', 'experiment'] }
         }
       })
       await mmContribution.update({
@@ -305,7 +329,7 @@ const update = async (req, res, next) => {
         where: {
           userId: req.token.id,
           mainParentId: req.body.mainParentId,
-          category: { [Op.notIn]: ['analysis', 'data'] }
+          category: { [Op.in]: ['hypothesis', 'question'] }
         }
       })
       await mmContribution.update({
@@ -324,23 +348,10 @@ const update = async (req, res, next) => {
       }, {
         where: {
           userId: req.token.id,
-          mainParentId: req.body.mainParentId,
-          category: { [Op.notIn]: ['analysis', 'data', 'experiment'] }
-          // ]
+          id: req.body.mainParentId,
+          category: 'question'
         }
       })
-      await mmContribution.update({
-        status: 'publish'
-      }, {
-        where: {
-          userId: req.token.id,
-          id: req.body.mainParentId
-        }
-      })
-    }
-
-    if (req.contribution.status === 'draft' && (req.body.status === 'draft' || req.body.status === 'publish')) {
-      updateContribution = await req.contribution.update(req.payload)
     }
 
     for (let om = 0; om < req.oldRelatedMedia.length; om++) {
