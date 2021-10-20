@@ -27,7 +27,7 @@ module.exports = {
         allowNull: true
       },
       tags: {
-        type: Sequelize.JSON,
+        type: Sequelize.JSONB,
         allowNull: true
       },
       author: {
@@ -54,6 +54,10 @@ module.exports = {
         type: Sequelize.INTEGER
       },
       status: {
+        type: Sequelize.STRING,
+        allowNull: false
+      },
+      searchString: {
         type: Sequelize.STRING,
         allowNull: false
       },

@@ -7,8 +7,8 @@ module.exports = async (req, res) => {
     const results = await mmFaq.findAll({
       where: {
         [Op.or]: [
-          { topic: { [Op.like]: '%' + req.params.question + '%' } },
-          { question: { [Op.like]: '%' + req.params.question + '%' } }
+          { topic: { [Op.iLike]: '%' + req.params.question + '%' } },
+          { question: { [Op.iLike]: '%' + req.params.question + '%' } }
         ]
       },
       order: [

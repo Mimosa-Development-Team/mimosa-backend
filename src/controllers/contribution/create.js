@@ -1,7 +1,8 @@
 const {
   mmContribution,
   mmRelatedMedia,
-  mmContributionDraft
+  mmContributionDraft,
+  mmUser
 } = require('../../database/models')
 const { errorResponse, payloadValidator } = require('../../../helpers')
 
@@ -82,6 +83,11 @@ const validate = async (req, res, next) => {
       mainParentId: req.body.mainParentId,
       parentId: req.body.parentId
     }
+    const findAuthor = await mmUser.findOne({
+      where: {
+        id: req.body.userId
+      }
+    })
 
     const payloadValid = payloadValidator(payloadSchema, payloadData)
 
@@ -90,6 +96,7 @@ const validate = async (req, res, next) => {
         message: payloadValid
       })
     }
+    payloadData.searchString = payloadData.subject.concat(' ', payloadData.tags.toString(), ' ', findAuthor.firstName, ' ', findAuthor.lastName)
     req.payload = payloadData
     return next()
   } catch (error) {

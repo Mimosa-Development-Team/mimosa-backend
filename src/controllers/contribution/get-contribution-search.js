@@ -1,13 +1,20 @@
-const { mmContribution } = require('../../database/models')
+const { mmContribution, mmUser } = require('../../database/models')
 const { errorResponse } = require('../../../helpers')
 const { Op } = require('sequelize')
 
 module.exports = async (req, res) => {
   try {
     const results = await mmContribution.findAll({
+      include: [
+        {
+          model: mmUser,
+          as: 'poster'
+        }
+      ],
       where: {
         [Op.or]: [
-          { subject: { [Op.like]: '%' + req.query.data + '%' } }
+          { searchString: { [Op.iLike]: '%' + req.query.data + '%' } }
+          // { 'poster.lastName': req.query.data }
         ]
       },
       order: [
