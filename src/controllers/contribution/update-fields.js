@@ -2,7 +2,8 @@
 const {
   mmContribution,
   mmRelatedMedia,
-  mmContributionDraft
+  mmContributionDraft,
+  mmUser
 } = require('../../database/models')
 const {
   errorResponse,
@@ -91,6 +92,13 @@ const validatePayload = async (req, res, next) => {
         message: payloadValid
       })
     }
+
+    const findAuthor = await mmUser.findOne({
+      where: {
+        id: req.body.userId
+      }
+    })
+    payloadData.searchString = payloadData.subject.concat(' ', payloadData.tags.toString(), ' ', findAuthor.firstName, ' ', findAuthor.lastName)
     let relatedmedia = []
     const oldRelatedMedia = []
     if (req.body.relatedmedia && req.body.relatedmedia.length === 1 && !req.body.relatedmedia[0].title) {
@@ -282,8 +290,33 @@ const update = async (req, res, next) => {
         }
       }
     }
-
     if (req.body.category === 'analysis' && req.body.status === 'publish') {
+      const childDraft = await mmContributionDraft.findAll({
+        where: {
+          userId: req.token.id,
+          mainParentId: req.body.mainParentId
+        }
+      })
+      const mainParentDraft = await mmContributionDraft.findOne({
+        where: {
+          userId: req.token.id,
+          id: req.body.mainParentId
+        }
+      })
+      for (let i = 0; i < childDraft.length; i++) {
+        await mmContributionDraft.destroy({
+          where: {
+            id: childDraft[i].id
+          }
+        })
+      }
+      if (mainParentDraft) {
+        await mmContributionDraft.destroy({
+          where: {
+            id: mainParentDraft.id
+          }
+        })
+      }
       await mmContribution.update({
         status: 'publish'
       }, {
@@ -303,6 +336,32 @@ const update = async (req, res, next) => {
     }
 
     if (req.body.category === 'data' && req.body.status === 'publish') {
+      const childDraft = await mmContributionDraft.findAll({
+        where: {
+          userId: req.token.id,
+          mainParentId: req.body.mainParentId
+        }
+      })
+      const mainParentDraft = await mmContributionDraft.findOne({
+        where: {
+          userId: req.token.id,
+          id: req.body.mainParentId
+        }
+      })
+      for (let i = 0; i < childDraft.length; i++) {
+        await mmContributionDraft.destroy({
+          where: {
+            id: childDraft[i].id
+          }
+        })
+      }
+      if (mainParentDraft) {
+        await mmContributionDraft.destroy({
+          where: {
+            id: mainParentDraft.id
+          }
+        })
+      }
       await mmContribution.update({
         status: 'publish'
       }, {
@@ -323,6 +382,32 @@ const update = async (req, res, next) => {
     }
 
     if (req.body.category === 'experiment' && req.body.status === 'publish') {
+      const childDraft = await mmContributionDraft.findAll({
+        where: {
+          userId: req.token.id,
+          mainParentId: req.body.mainParentId
+        }
+      })
+      const mainParentDraft = await mmContributionDraft.findOne({
+        where: {
+          userId: req.token.id,
+          id: req.body.mainParentId
+        }
+      })
+      for (let i = 0; i < childDraft.length; i++) {
+        await mmContributionDraft.destroy({
+          where: {
+            id: childDraft[i].id
+          }
+        })
+      }
+      if (mainParentDraft) {
+        await mmContributionDraft.destroy({
+          where: {
+            id: mainParentDraft.id
+          }
+        })
+      }
       await mmContribution.update({
         status: 'publish'
       }, {
@@ -343,6 +428,32 @@ const update = async (req, res, next) => {
     }
 
     if (req.body.category === 'hypothesis' && req.body.status === 'publish') {
+      const childDraft = await mmContributionDraft.findAll({
+        where: {
+          userId: req.token.id,
+          mainParentId: req.body.mainParentId
+        }
+      })
+      const mainParentDraft = await mmContributionDraft.findOne({
+        where: {
+          userId: req.token.id,
+          id: req.body.mainParentId
+        }
+      })
+      for (let i = 0; i < childDraft.length; i++) {
+        await mmContributionDraft.destroy({
+          where: {
+            id: childDraft[i].id
+          }
+        })
+      }
+      if (mainParentDraft) {
+        await mmContributionDraft.destroy({
+          where: {
+            id: mainParentDraft.id
+          }
+        })
+      }
       await mmContribution.update({
         status: 'publish'
       }, {

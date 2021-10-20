@@ -1,5 +1,6 @@
 const getAll = require('./getAll')
 const get = require('./get')
+const getOrcidId = require('./get-orcid-id')
 const update = require('./update')
 const create = require('./create')
 const destroy = require('./destroy')
@@ -17,5 +18,6 @@ module.exports = {
   create,
   destroy,
   updateEmail,
-  updateNotification
+  updateNotification,
+  getOrcidId
 }

@@ -37,6 +37,8 @@ router.get('/', auth, usersController.getAll)
  */
 router.get('/list', auth, usersController.getUser)
 
+router.get('/orcid/:orcidId', usersController.getOrcidId)
+
 /**
  * @swagger
  * /api/v1/users/ee5278b8-6731-40ac-8fbe-b9d734df4a02:
@@ -49,6 +51,7 @@ router.get('/list', auth, usersController.getUser)
  *       200:
  *         description: A single user.
  */
+
 router.get('/:userId', auth, usersController.get)
 
 router.put(

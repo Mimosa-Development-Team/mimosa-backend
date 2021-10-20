@@ -29,7 +29,7 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: true
       },
       tags: {
-        type: DataTypes.JSON,
+        type: DataTypes.JSONB,
         allowNull: true
       },
       author: {
@@ -49,6 +49,10 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: true
       },
       status: {
+        type: DataTypes.STRING,
+        allowNull: false
+      },
+      searchString: {
         type: DataTypes.STRING,
         allowNull: false
       },
