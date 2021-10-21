@@ -1,3 +1,4 @@
+const randomHexColor = require('random-hex-color')
 const { mmUser } = require('../../database/models')
 const {
   errorResponse,
@@ -59,7 +60,7 @@ const validateUser = async (req, res, next) => {
       lastName: req.payload.family_name,
       orcidId: req.payload.sub,
       email: req.body.email,
-      userColor: '#' + Math.floor(Math.random() * 16777215).toString(16)
+      userColor: randomHexColor()
     }
 
     const payloadValid = payloadValidator(payloadSchema, payloadData)
