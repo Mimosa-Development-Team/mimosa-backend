@@ -234,6 +234,17 @@ const update = async (req, res, next) => {
                       id: results.children[h].children[e].children[d].id
                     }
                   })
+                  if (results.children[h].children[e].children[d].length > 0) {
+                    for (let a = 0; a < results.children[h].children[e].children[d].children.length; a++) {
+                      await mmContribution.update({
+                        status: 'deprecated'
+                      }, {
+                        where: {
+                          id: results.children[h].children[e].children[d].children[a].id
+                        }
+                      })
+                    }
+                  }
                 }
               }
             }
@@ -515,6 +526,15 @@ const update = async (req, res, next) => {
         }
         rMedia.push(temp)
       }
+    }
+    if (req.body.status === 'publish' && req.contribution.dataValues.status === 'publish') {
+      await req.contribution.update({
+        status: 'deprecated'
+      }, {
+        where: {
+          id: req.body.id
+        }
+      })
     }
     req.rMedia = rMedia
     req.conferenceMedia = conference
