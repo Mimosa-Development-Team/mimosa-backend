@@ -9,142 +9,238 @@ const { Op } = require('sequelize')
 
 module.exports = async (req, res) => {
   try {
-    const results = await mmContribution.findOne({
-      where: {
-        id: req.params.contributionId
-      },
-      include: [
-        {
-          model: mmContribution,
-          as: 'total'
+    let results = null
+    if (req.token && req.token.id) {
+      results = await mmContribution.findOne({
+        where: {
+          id: req.params.contributionId
         },
-        {
-          model: mmRelatedMedia,
-          as: 'relatedmedia'
-        },
-        {
-          model: mmUser,
-          as: 'poster'
-        },
-        {
-          model: mmContribution,
-          as: 'children',
-          required: false,
-          where: {
-            [Op.or]: [
-              {
-                status: 'publish'
-              },
-              {
-                status: 'deprecated'
-              },
-              {
-                status: 'draft',
-                userId: req.token.id
-              }
-            ]
+        include: [
+          {
+            model: mmContribution,
+            as: 'total'
           },
-          include: [
-            {
-              model: mmUser,
-              as: 'poster'
-            },
-            {
-              model: mmContribution,
-              as: 'children',
-              required: false,
-              where: {
-                [Op.or]: [
-                  {
-                    status: 'publish'
-                  },
-                  {
-                    status: 'deprecated'
-                  },
-                  {
-                    status: 'draft',
-                    userId: req.token.id
-                  }
-                ]
-              },
-              include: [
+          {
+            model: mmRelatedMedia,
+            as: 'relatedmedia'
+          },
+          {
+            model: mmUser,
+            as: 'poster'
+          },
+          {
+            model: mmContribution,
+            as: 'children',
+            required: false,
+            where: {
+              [Op.or]: [
                 {
-                  model: mmUser,
-                  as: 'poster'
+                  status: 'publish'
                 },
                 {
-                  model: mmContribution,
-                  as: 'children',
-                  required: false,
-                  where: {
-                    [Op.or]: [
-                      {
-                        status: 'publish'
-                      },
-                      {
-                        status: 'deprecated'
-                      },
-                      {
-                        status: 'draft',
-                        userId: req.token.id
-                      }
-                    ]
-                  },
-                  include: [
+                  status: 'deprecated'
+                },
+                {
+                  status: 'draft',
+                  userId: req.token.id
+                }
+              ]
+            },
+            include: [
+              {
+                model: mmUser,
+                as: 'poster'
+              },
+              {
+                model: mmContribution,
+                as: 'children',
+                required: false,
+                where: {
+                  [Op.or]: [
                     {
-                      model: mmUser,
-                      as: 'poster'
+                      status: 'publish'
                     },
                     {
-                      model: mmContribution,
-                      as: 'children',
-                      required: false,
-                      where: {
-                        [Op.or]: [
-                          {
-                            status: 'publish'
-                          },
-                          {
-                            status: 'deprecated'
-                          },
-                          {
-                            status: 'draft',
-                            userId: req.token.id
-                          }
-                        ]
-                      },
-                      include: [
+                      status: 'deprecated'
+                    },
+                    {
+                      status: 'draft',
+                      userId: req.token.id
+                    }
+                  ]
+                },
+                include: [
+                  {
+                    model: mmUser,
+                    as: 'poster'
+                  },
+                  {
+                    model: mmContribution,
+                    as: 'children',
+                    required: false,
+                    where: {
+                      [Op.or]: [
                         {
-                          model: mmUser,
-                          as: 'poster'
+                          status: 'publish'
                         },
                         {
-                          model: mmContributionDraft,
-                          as: 'draft'
+                          status: 'deprecated'
+                        },
+                        {
+                          status: 'draft',
+                          userId: req.token.id
                         }
                       ]
                     },
-                    {
-                      model: mmContributionDraft,
-                      as: 'draft'
-                    }
-                  ]
-                }, {
-                  model: mmContributionDraft,
-                  as: 'draft'
-                }
-              ]
-            }, {
-              model: mmContributionDraft,
-              as: 'draft'
-            }
-          ]
-        }, {
-          model: mmContributionDraft,
-          as: 'draft'
-        }
-      ]
-    })
+                    include: [
+                      {
+                        model: mmUser,
+                        as: 'poster'
+                      },
+                      {
+                        model: mmContribution,
+                        as: 'children',
+                        required: false,
+                        where: {
+                          [Op.or]: [
+                            {
+                              status: 'publish'
+                            },
+                            {
+                              status: 'deprecated'
+                            },
+                            {
+                              status: 'draft',
+                              userId: req.token.id
+                            }
+                          ]
+                        },
+                        include: [
+                          {
+                            model: mmUser,
+                            as: 'poster'
+                          },
+                          {
+                            model: mmContributionDraft,
+                            as: 'draft'
+                          }
+                        ]
+                      },
+                      {
+                        model: mmContributionDraft,
+                        as: 'draft'
+                      }
+                    ]
+                  }, {
+                    model: mmContributionDraft,
+                    as: 'draft'
+                  }
+                ]
+              }, {
+                model: mmContributionDraft,
+                as: 'draft'
+              }
+            ]
+          }, {
+            model: mmContributionDraft,
+            as: 'draft'
+          }
+        ]
+      })
+    } else {
+      results = await mmContribution.findOne({
+        where: {
+          id: req.params.contributionId
+        },
+        include: [
+          {
+            model: mmContribution,
+            as: 'total'
+          },
+          {
+            model: mmRelatedMedia,
+            as: 'relatedmedia'
+          },
+          {
+            model: mmUser,
+            as: 'poster'
+          },
+          {
+            model: mmContribution,
+            as: 'children',
+            required: false,
+            where: {
+              status: 'publish'
+            },
+            include: [
+              {
+                model: mmUser,
+                as: 'poster'
+              },
+              {
+                model: mmContribution,
+                as: 'children',
+                required: false,
+                where: {
+                  status: 'publish'
+                },
+                include: [
+                  {
+                    model: mmUser,
+                    as: 'poster'
+                  },
+                  {
+                    model: mmContribution,
+                    as: 'children',
+                    required: false,
+                    where: {
+                      status: 'publish'
+                    },
+                    include: [
+                      {
+                        model: mmUser,
+                        as: 'poster'
+                      },
+                      {
+                        model: mmContribution,
+                        as: 'children',
+                        required: false,
+                        where: {
+                          status: 'publish'
+                        },
+                        include: [
+                          {
+                            model: mmUser,
+                            as: 'poster'
+                          },
+                          {
+                            model: mmContributionDraft,
+                            as: 'draft'
+                          }
+                        ]
+                      },
+                      {
+                        model: mmContributionDraft,
+                        as: 'draft'
+                      }
+                    ]
+                  }, {
+                    model: mmContributionDraft,
+                    as: 'draft'
+                  }
+                ]
+              }, {
+                model: mmContributionDraft,
+                as: 'draft'
+              }
+            ]
+          }, {
+            model: mmContributionDraft,
+            as: 'draft'
+          }
+        ]
+      })
+    }
     res
       .status(200)
       .json(results)
