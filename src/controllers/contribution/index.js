@@ -1,4 +1,5 @@
 const get = require('./get')
+const getSingle = require('./get-single')
 const getContributionList = require('./get-contribution-list')
 const getContributionSearch = require('./get-contribution-search')
 const create = require('./create')
@@ -19,5 +20,6 @@ module.exports = {
   updateAll,
   getContributionTags,
   getQuestions,
-  getContributionSearch
+  getContributionSearch,
+  getSingle
 }

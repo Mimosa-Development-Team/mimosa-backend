@@ -20,11 +20,11 @@ module.exports = {
       underscored: true
     },
     dialectOptions: {
-      useUTC: true,
-      ssl: {
-        require: true,
-        rejectUnauthorized: false
-      }
+      useUTC: true
+      // ssl: {
+      //   require: true,
+      //   rejectUnauthorized: false
+      // }
     },
     timezone: '00:00' // --> for writing to database
   },

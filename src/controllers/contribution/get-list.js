@@ -5,6 +5,7 @@ const {
   mmRelatedMedia
 } = require('../../database/models')
 const { errorResponse } = require('../../../helpers')
+const { Op } = require('sequelize')
 
 module.exports = async (req, res) => {
   try {
@@ -28,6 +29,21 @@ module.exports = async (req, res) => {
         {
           model: mmContribution,
           as: 'children',
+          required: false,
+          where: {
+            [Op.or]: [
+              {
+                status: 'publish'
+              },
+              {
+                status: 'deprecated'
+              },
+              {
+                status: 'draft',
+                userId: req.token.id
+              }
+            ]
+          },
           include: [
             {
               model: mmUser,
@@ -36,6 +52,21 @@ module.exports = async (req, res) => {
             {
               model: mmContribution,
               as: 'children',
+              required: false,
+              where: {
+                [Op.or]: [
+                  {
+                    status: 'publish'
+                  },
+                  {
+                    status: 'deprecated'
+                  },
+                  {
+                    status: 'draft',
+                    userId: req.token.id
+                  }
+                ]
+              },
               include: [
                 {
                   model: mmUser,
@@ -44,6 +75,21 @@ module.exports = async (req, res) => {
                 {
                   model: mmContribution,
                   as: 'children',
+                  required: false,
+                  where: {
+                    [Op.or]: [
+                      {
+                        status: 'publish'
+                      },
+                      {
+                        status: 'deprecated'
+                      },
+                      {
+                        status: 'draft',
+                        userId: req.token.id
+                      }
+                    ]
+                  },
                   include: [
                     {
                       model: mmUser,
@@ -52,6 +98,21 @@ module.exports = async (req, res) => {
                     {
                       model: mmContribution,
                       as: 'children',
+                      required: false,
+                      where: {
+                        [Op.or]: [
+                          {
+                            status: 'publish'
+                          },
+                          {
+                            status: 'deprecated'
+                          },
+                          {
+                            status: 'draft',
+                            userId: req.token.id
+                          }
+                        ]
+                      },
                       include: [
                         {
                           model: mmUser,
