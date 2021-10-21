@@ -527,15 +527,15 @@ const update = async (req, res, next) => {
         rMedia.push(temp)
       }
     }
-    if (req.body.status === 'publish' && req.contribution.dataValues.status === 'publish') {
-      await req.contribution.update({
-        status: 'deprecated'
-      }, {
-        where: {
-          id: req.body.id
-        }
-      })
-    }
+    // if (req.body.status === 'publish' && req.contribution.dataValues.status === 'publish') {
+    //   await req.contribution.update({
+    //     status: 'deprecated'
+    //   }, {
+    //     where: {
+    //       id: req.body.id
+    //     }
+    //   })
+    // }
     req.rMedia = rMedia
     req.conferenceMedia = conference
     req.updateContribution = updateContribution
