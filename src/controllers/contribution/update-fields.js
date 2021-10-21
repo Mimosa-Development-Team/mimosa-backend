@@ -15,7 +15,6 @@ const { Op } = require('sequelize')
 const validatePayload = async (req, res, next) => {
   try {
     const contribution = await mmContribution.findByPk(req.params.contributionId)
-
     const payloadSchema = {
       type: 'object',
       properties: {
@@ -243,6 +242,17 @@ const update = async (req, res, next) => {
                           id: results.children[h].children[e].children[d].children[a].id
                         }
                       })
+                      if (results.children[h].children[e].children[d].children.length > 0) {
+                        for (let s = 0; s < results.children[h].children[e].children[d].children.length; s++) {
+                          await mmContribution.update({
+                            status: 'deprecated'
+                          }, {
+                            where: {
+                              id: results.children[h].children[e].children[d].children[a].children[s].id
+                            }
+                          })
+                        }
+                      }
                     }
                   }
                 }
@@ -346,7 +356,7 @@ const update = async (req, res, next) => {
       })
     }
 
-    if (req.body.category === 'data' && req.body.status === 'publish') {
+    if (req.body.category === 'data' && req.body.status === 'publish' && req.contribution.status !== 'deprecated') {
       const childDraft = await mmContributionDraft.findAll({
         where: {
           userId: req.token.id,
@@ -391,8 +401,7 @@ const update = async (req, res, next) => {
         }
       })
     }
-
-    if (req.body.category === 'experiment' && req.body.status === 'publish') {
+    if (req.body.category === 'experiment' && req.body.status === 'publish' && req.contribution.status !== 'deprecated') {
       const childDraft = await mmContributionDraft.findAll({
         where: {
           userId: req.token.id,
@@ -438,7 +447,7 @@ const update = async (req, res, next) => {
       })
     }
 
-    if (req.body.category === 'hypothesis' && req.body.status === 'publish') {
+    if (req.body.category === 'hypothesis' && req.body.status === 'publish' && req.contribution.status !== 'deprecated') {
       const childDraft = await mmContributionDraft.findAll({
         where: {
           userId: req.token.id,
@@ -527,15 +536,7 @@ const update = async (req, res, next) => {
         rMedia.push(temp)
       }
     }
-    // if (req.body.status === 'publish' && req.contribution.dataValues.status === 'publish') {
-    //   await req.contribution.update({
-    //     status: 'deprecated'
-    //   }, {
-    //     where: {
-    //       id: req.body.id
-    //     }
-    //   })
-    // }
+
     req.rMedia = rMedia
     req.conferenceMedia = conference
     req.updateContribution = updateContribution

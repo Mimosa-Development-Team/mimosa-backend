@@ -26,7 +26,7 @@ const contributionController = require('../../controllers').contribution
  *         description: List of questions.
  */
 router.get('/questions', auth, contributionController.getQuestions)
-router.get('/questionslist/:contributionId', contributionController.getList)
+router.get('/questionslist/:contributionId', auth, contributionController.getList)
 
 /**
  * @swagger
@@ -41,6 +41,8 @@ router.get('/questionslist/:contributionId', contributionController.getList)
  *         description: List of contributions of user.
  */
 router.get('/question/:userId/:orderBy', auth, contributionController.get)
+
+router.get('/question/:contributionId', auth, contributionController.getSingle)
 
 /**
  * @swagger
