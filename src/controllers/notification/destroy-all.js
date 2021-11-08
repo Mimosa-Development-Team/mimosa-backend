@@ -5,7 +5,7 @@ const validate = async (req, res, next) => {
   try {
     const notification = await mmNotification.findAll({
       where: {
-        user: req.token.id
+        poster: req.token.id
       }
     })
     if (notification === undefined) {
@@ -28,7 +28,7 @@ const destroy = async (req, res, next) => {
   try {
     await mmNotification.destroy({
       where: {
-        user: req.token.id
+        poster: req.token.id
       }
     })
 
