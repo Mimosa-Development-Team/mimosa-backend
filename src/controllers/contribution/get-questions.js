@@ -11,35 +11,47 @@ module.exports = async (req, res) => {
   try {
     const page = req.query.page
     const limit = 5
-    const results = await mmContribution.findAll({
+    let results = []
+    const count = await mmContribution.count({
       where: {
         category: 'question',
         status: 'publish'
-      },
-      order: [
-        ['updatedAt', req.query.orderBy]
-      ],
-      include: [
-        {
-          model: mmComment,
-          as: 'commentCount'
-        },
-        {
-          model: mmRelatedMedia,
-          as: 'relatedMediaCount'
-        },
-        {
-          model: mmContribution,
-          as: 'total'
-        },
-        {
-          model: mmUser,
-          as: 'poster'
-        }
-      ],
-      limit: limit,
-      offset: (page - 1) * limit
+      }
     })
+    if (count > page * limit) {
+      results = await mmContribution.findAll({
+        where: {
+          category: 'question',
+          status: 'publish'
+        },
+        order: [
+          ['updatedAt', req.query.orderBy]
+        ],
+        include: [
+          {
+            model: mmComment,
+            as: 'commentCount'
+          },
+          {
+            model: mmRelatedMedia,
+            as: 'relatedMediaCount'
+          },
+          {
+            model: mmContribution,
+            as: 'total'
+          },
+          {
+            model: mmUser,
+            as: 'poster'
+          }
+        ],
+        limit: limit,
+        offset: (page - 1) * limit
+      })
+    } else {
+      results = []
+    }
+
     let draftQ = []
     if (req.query.userId !== 'null' && parseInt(page) === 1) {
       draftQ = await mmContributionDraft.findAll({
@@ -65,7 +77,7 @@ module.exports = async (req, res) => {
     const nextPageNum =
     results.length === Number(limit) ? Number(page) + 1 : undefined
 
-    if (results === undefined || results.length === 0) {
+    if (results === undefined || (results.length === 0 && page === 1)) {
       return res.status(404).json({
         message: 'Question Not Found'
       })
