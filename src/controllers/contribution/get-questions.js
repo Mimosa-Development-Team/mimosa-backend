@@ -18,7 +18,7 @@ module.exports = async (req, res) => {
         status: 'publish'
       }
     })
-    if (count > page * limit) {
+    if (count >= page * limit) {
       results = await mmContribution.findAll({
         where: {
           category: 'question',
