@@ -10,7 +10,7 @@ const { errorResponse } = require('../../../helpers')
 module.exports = async (req, res) => {
   try {
     const page = req.query.page
-    const limit = req.query.limit
+    const limit = 5
     const results = await mmContribution.findAll({
       where: {
         category: 'question',
@@ -36,7 +36,9 @@ module.exports = async (req, res) => {
           model: mmUser,
           as: 'poster'
         }
-      ]
+      ],
+      limit: limit,
+      offset: (page - 1) * limit
     })
     let draftQ = []
     if (req.query.userId !== 'null' && parseInt(page) === 1) {
@@ -60,12 +62,8 @@ module.exports = async (req, res) => {
         ]
       })
     }
-
-    const startIndex = (page - 1) * limit
-    const endIndex = page * limit
-    const restt = results.slice(startIndex, endIndex)
     const nextPageNum =
-      restt.length === Number(limit) ? Number(page) + 1 : undefined
+    results.length === Number(limit) ? Number(page) + 1 : undefined
 
     if (results === undefined || results.length === 0) {
       return res.status(404).json({
@@ -75,7 +73,7 @@ module.exports = async (req, res) => {
 
     res
       .status(200)
-      .json({ draftQuestions: draftQ, data: restt, nextPage: nextPageNum })
+      .json({ draftQuestions: draftQ, data: results, nextPage: nextPageNum })
   } catch (error) {
     const response = errorResponse(error)
     res.status(500).json(response)
